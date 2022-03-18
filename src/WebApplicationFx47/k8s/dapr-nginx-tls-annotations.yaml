@@ -1,0 +1,20 @@
+﻿controller:
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  podAnnotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "nginx-ingress"
+    dapr.io/app-port: "80"
+  extraVolumes:
+      - name: secrets-store-inline
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: $CERT_NAME-tls-spc
+  extraVolumeMounts:
+      - name: secrets-store-inline
+        mountPath: "/mnt/secrets-store"
+        readOnly: true

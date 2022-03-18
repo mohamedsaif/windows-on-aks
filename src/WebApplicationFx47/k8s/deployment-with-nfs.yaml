@@ -1,0 +1,100 @@
+﻿---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapplicationfx-nfs-http
+  namespace: default
+  labels:
+    app: webapplicationfx-nfs-http
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapplicationfx-nfs-http
+  template:
+    metadata:
+      labels:
+        app: webapplicationfx-nfs-http
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "webapplicationfx"
+        dapr.io/app-port: "80"
+    spec:
+      containers:
+      - name: webapplicationfx-nfs-http
+        image: acrdevgbbmsftweu.azurecr.io/webapplicationfx47:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+        - name: AppVersion
+          value: v1.0
+        - name: dapr-sb-key
+          valueFrom:
+            secretKeyRef:
+              name: dapr-sb-secret
+              key: dapr-sb-key
+        - name: dapr-storage-key
+          valueFrom:
+            secretKeyRef:
+              name: dapr-storage-secret
+              key: dapr-storage-key
+        #envFrom:
+        #- configMapRef:
+        #    name: webapplicationfx-cm
+        #- secretRef:
+        #    name: webapplicationfx
+        volumeMounts:
+          - name: secrets-store01-inline
+            mountPath: "/inetpub/wwwroot/secrets"
+            readOnly: true
+          - name: nfs-vol
+            mountPath: "inetpub/wwwroot/nfs"
+        readinessProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+        startupProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+        resources:
+            limits:
+              memory: 4Gi
+              cpu: 1000m
+            requests:
+              memory: 4Gi
+              cpu: 1000m
+      tolerations:
+      - key: "workload-os"
+        operator: "Equal"
+        value: "win"
+        effect: "NoSchedule"
+      nodeSelector:
+        workload-type: aspdotnet
+      volumes:
+        - name: secrets-store01-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "azure-kvname-user-msi"
+        #- name: nfs-vol
+        #  persistentVolumeClaim:
+        #    claimName: pvc-nfs
+        - name: nfs-vol
+          nfs:
+            server: 10.170.2.4
+            path: "/anf-vol"
+
+---

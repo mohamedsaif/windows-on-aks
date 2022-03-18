@@ -1,0 +1,37 @@
+# This is a SecretProviderClass example using user-assigned identity to access your key vault
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: azure-kvname-user-msi
+  namespace: default
+spec:
+  provider: azure
+  parameters:
+    usePodIdentity: "false"
+    useVMManagedIdentity: "true"          # Set to true for using managed identity
+    userAssignedIdentityID: replace   # Set the clientID of the user-assigned managed identity to use
+    keyvaultName: dapr-aks-kv        # Set to the name of your key vault
+    cloudName: ""                         # [OPTIONAL for Azure] if not provided, the Azure environment defaults to AzurePublicCloud
+    tenantId: replace                 # The tenant ID of the key vault
+    objects:  |
+      array:
+        - |
+          objectName: dapr-storage-key
+          objectType: secret              # object types: secret, key, or cert
+          objectVersion: ""               # [OPTIONAL] object versions, default to latest if empty
+        - |
+          objectName: dapr-sb-key
+          objectType: secret
+          objectVersion: ""
+  secretObjects:
+    - secretName: dapr-sb-secret
+      type: Opaque
+      data:
+        - objectName: dapr-sb-key
+          key: dapr-sb-key
+    - secretName: dapr-storage-secret
+      type: Opaque
+      data:
+        - objectName: dapr-storage-key
+          key: dapr-storage-key
+  

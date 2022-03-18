@@ -1,0 +1,10 @@
+﻿controller:
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  podAnnotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "nginx-ingress"
+    dapr.io/app-port: "80"
+  

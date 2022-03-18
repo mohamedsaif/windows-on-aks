@@ -1,0 +1,71 @@
+﻿---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapplicationfx-http
+  namespace: default
+  labels:
+    app: webapplicationfx-http
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapplicationfx-http
+  template:
+    metadata:
+      labels:
+        app: webapplicationfx-http
+      #annotations:
+      #  dapr.io/enabled: "true"
+      #  dapr.io/app-id: "webapplicationfx"
+      #  dapr.io/app-port: "80"
+    spec:
+      containers:
+      - name: webapplicationfx-http
+        image: acrdevgbbmsftweu.azurecr.io/webapplicationfx47:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+        - name: AppVersion
+          value: v1.0
+        #envFrom:
+        #- configMapRef:
+        #    name: webapplicationfx-cm
+        #- secretRef:
+        #    name: webapplicationfx
+        readinessProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 240
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+        startupProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+        resources:
+            limits:
+              memory: 4Gi
+              cpu: 1000m
+            requests:
+              memory: 4Gi
+              cpu: 1000m
+      tolerations:
+      - key: "workload-os"
+        operator: "Equal"
+        value: "win"
+        effect: "NoSchedule"
+      nodeSelector:
+        workload-type: aspdotnet
+      #  workload-project: eshop
+      #serviceAccountName: webapplicationfx-svc-act
+---
