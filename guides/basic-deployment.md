@@ -84,3 +84,23 @@ az acr build -r acrdevgbbmsftweu https://github.com/Azure/acr-builder.git -t dot
 ```
 
 Now with the image dotnet/webapp:latest successfully pushed to the registry, we are good to deploy the application
+
+A folder named "k8s" is part of the repo that includes all deployments needed for this basic scenario and other scenarios as well.
+
+Open terminal window with "k8s" as the active folder to execute the application deployment
+
+```bash
+kubectl apply -f deployment-basic.yaml
+kubectl get svc,pods -n default
+# wait for the above command to return pod/webapplicationfx-basic-http-RANDOM as running
+```
+
+This will deploy the application with 1 replica and a cluster service to access the application.
+
+To validate the deployment, run the following command to port forward local port to the AKS service port:
+
+```bash
+kubectl port-forward -n default service/webapplicationfx-basic-http-service 8080:80
+# in a new terminal, execute (or open it in a browser):
+curl -v http://localhost:8080
+```

@@ -1,0 +1,82 @@
+﻿---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapplicationfx-basic-http
+  namespace: default
+  labels:
+    app: webapplicationfx-basic-http
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapplicationfx-basic-http
+  template:
+    metadata:
+      labels:
+        app: webapplicationfx-basic-http
+    spec:
+      containers:
+      - name: webapplicationfx-basic-http
+        image: acrdevgbbmsftweu.azurecr.io/webapplicationfx47:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+        - name: AppVersion
+          value: v1.0
+        readinessProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+        startupProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+        livenessProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+        resources:
+            limits:
+              memory: 4Gi
+              cpu: 1000m
+            requests:
+              memory: 2Gi
+              cpu: 500m
+      tolerations:
+      - key: "workload-os"
+        operator: "Equal"
+        value: "win"
+        effect: "NoSchedule"
+      nodeSelector:
+        workload-type: aspdotnet
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapplicationfx-basic-http-service
+  namespace: default
+spec:
+  selector:
+    app: webapplicationfx-basic-http
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: ClusterIP
